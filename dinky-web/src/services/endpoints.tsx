@@ -18,6 +18,8 @@
  */
 
 export enum API_CONSTANTS {
+  GET_SERVICE_VERSION = '/api/version',
+
   // --- user ---
   // login path
   LOGIN_PATH = '/user/login',
@@ -249,6 +251,7 @@ export enum API_CONSTANTS {
   SAVEPOINT = '/api/task/savepoint',
   RESTART_TASK_FROM_CHECKPOINT = '/api/task/selectSavePointRestartTask',
   GET_SAVEPOINT_LIST_BY_TASK_ID = '/api/savepoints/listSavepointsByTaskId',
+  GET_SAVEPOINT_LIST = '/api/savepoints',
   ALERT_HISTORY_LIST = '/api/alertHistory/list',
   ALERT_HISTORY_DELETE = '/api/alertHistory/delete',
 

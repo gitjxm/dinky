@@ -18,28 +18,20 @@
  */
 
 import EllipsisMiddle from '@/components/Typography/EllipsisMiddle';
+import { recoveryCheckPoint } from '@/pages/DevOps/JobDetail/CheckPointsTab/components/functions';
 import { JobProps } from '@/pages/DevOps/JobDetail/data';
-import { queryDataByParams } from '@/services/BusinessCrud';
+import { postAll } from '@/services/api';
 import { API_CONSTANTS } from '@/services/endpoints';
 import { SavePoint } from '@/types/Studio/data';
 import { l } from '@/utils/intl';
 import ProTable, { ActionType, ProColumns } from '@ant-design/pro-table';
-import { useEffect, useRef, useState } from 'react';
+import { Button } from 'antd';
+import { useRef } from 'react';
 
 const SavepointTable = (props: JobProps) => {
   const { jobDetail } = props;
 
   const actionRef = useRef<ActionType>();
-
-  const [savepointData, setSavepointData] = useState<SavePoint[]>([]);
-
-  useEffect(() => {
-    queryDataByParams<Partial<SavePoint[]>>(API_CONSTANTS.GET_SAVEPOINT_LIST_BY_TASK_ID, {
-      taskId: jobDetail?.instance?.taskId
-    }).then((res) => {
-      setSavepointData((res as SavePoint[]) ?? []);
-    });
-  }, [jobDetail]);
 
   const columns: ProColumns<SavePoint>[] = [
     {
@@ -76,6 +68,17 @@ const SavepointTable = (props: JobProps) => {
       align: 'center',
       valueType: 'dateTime',
       dataIndex: 'createTime'
+    },
+    {
+      title: l('global.table.operate'),
+      align: 'center',
+      render: (dom, entity) => {
+        return (
+          <Button onClick={() => recoveryCheckPoint(jobDetail?.instance?.taskId, entity.path)}>
+            {l('devops.jobinfo.ck.recovery.recoveryTo')}
+          </Button>
+        );
+      }
     }
   ];
 
@@ -83,7 +86,14 @@ const SavepointTable = (props: JobProps) => {
     <ProTable<SavePoint>
       columns={columns}
       style={{ width: '100%', height: 'calc(100vh - 450px)' }}
-      dataSource={savepointData}
+      request={(params, sorter, filter) =>
+        postAll(API_CONSTANTS.GET_SAVEPOINT_LIST, {
+          ...params,
+          sorter,
+          filter
+        })
+      }
+      params={{ taskId: jobDetail?.instance?.taskId }}
       actionRef={actionRef}
       toolBarRender={false}
       rowKey='id'

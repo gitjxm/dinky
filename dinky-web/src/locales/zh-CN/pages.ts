@@ -53,6 +53,7 @@ export default {
    * */
 
   'catalog.name': '作业名称',
+  'catalog.useTemplate': '使用模板',
   'catalog.name.placeholder': '请输入作业名称',
   'catalog.name.validate.error': '作业名称不允许出现 _ 字符,K8s 命名规范',
   'catalog.name.tip': '此名称可作为 FlinkSql 任务的 JobName',
@@ -191,11 +192,18 @@ export default {
   'devops.jobinfo.recently.job.status': '查看最近保存的作业状态信息',
   'devops.jobinfo.reonline': '重新上线',
   'devops.jobinfo.restart': '重新启动',
+  'devops.jobinfo.restart.auto.savepoint': '自动创建保存点并重启',
+  'devops.jobinfo.restart.from.savepoint': '从保存点重启',
+  'devops.jobinfo.restart.from.savepoint.help':
+    '停止作业并从指定保存点启动，此选项不会自动创建保存点（请务必保证此路径存在，否则会重启失败）',
+  'devops.jobinfo.restart.cannot.auto.savepoint': '作业已停止，无法使用智能重启',
   'devops.jobinfo.savepoint.cancel': 'Savepoint 停止',
   'devops.jobinfo.savepoint.canceljob': '普通停止',
   'devops.jobinfo.savepoint.stop': 'Savepoint 暂停',
   'devops.jobinfo.savepoint.trigger': 'Savepoint 触发',
   'devops.jobinfo.smart_stop': '智能停止',
+  'devops.jobinfo.smart_restart': '智能重启',
+  'devops.jobinfo.smart_restart.help': '在作业停止过程中会自动创建保存点并从此保存点启动',
   'devops.jobinfo.unable.obtain.status': '无法连接到 Flink 集群获取最新作业状态信息',
   'devops.jobinfo.version.delete': '删除版本',
   'devops.jobinfo.version.delete.sure': '确定删除此版本吗？V{version}',
@@ -351,6 +359,8 @@ export default {
   'pages.datastudio.editor.stop': '停止',
   'pages.datastudio.editor.stop.job': '停止作业',
   'pages.datastudio.editor.stop.jobConfirm': '确定停止作业【{jobName}】吗？',
+  'pages.datastudio.editor.stop.force.jobConfirm':
+    '当前作业【{jobName}】连接到集群获取信息失败，无法进行停止操作，确定强制修改状态吗？',
   'pages.datastudio.editor.submitting': '新任务【{jobName}】正在执行',
   'pages.datastudio.editor.checking': '任务【{jobName}】正在检查',
   'pages.datastudio.editor.debugging': '新任务【{jobName}】正在调试',

@@ -56,6 +56,7 @@ export default {
    * */
 
   'catalog.name': 'Job Name',
+  'catalog.useTemplate': 'Use Template',
   'catalog.name.placeholder': 'Please enter the job name',
   'catalog.name.validate.error': 'Job name cannot contain _ characters, K8s naming specification',
   'catalog.name.tip':
@@ -200,11 +201,20 @@ export default {
   'devops.jobinfo.recently.job.status': 'View recently saved job status information',
   'devops.jobinfo.reonline': 'Re-Online',
   'devops.jobinfo.restart': 'Restart',
+  'devops.jobinfo.restart.auto.savepoint': 'Automatically create a save point and restart',
+  'devops.jobinfo.restart.from.savepoint': 'Restart from the save point',
+  'devops.jobinfo.restart.from.savepoint.help':
+    'Stop the job and start from the specified save point, this option will not automatically create a save point (be sure to ensure that this path exists, otherwise the restart will fail)',
+  'devops.jobinfo.restart.cannot.auto.savepoint':
+    'The job has been stopped and Smart Restart is not available',
   'devops.jobinfo.savepoint.cancel': 'Savepoint Stop',
   'devops.jobinfo.savepoint.canceljob': 'Normal Stop',
   'devops.jobinfo.savepoint.stop': 'Savepoint Pause',
   'devops.jobinfo.savepoint.trigger': 'Savepoint Triggers',
   'devops.jobinfo.smart_stop': 'Smart Stop',
+  'devops.jobinfo.smart_restart': 'Smart restart',
+  'devops.jobinfo.smart_restart.help':
+    'A save point is automatically created and started from a job stop during the job stop process',
   'devops.jobinfo.unable.obtain.status':
     'Unable to connect to Flink cluster to obtain the latest job status information',
   'devops.jobinfo.version.delete': 'Delete Version',
@@ -363,6 +373,8 @@ export default {
   'pages.datastudio.editor.stop': 'Stop',
   'pages.datastudio.editor.stop.job': 'Stop job',
   'pages.datastudio.editor.stop.jobConfirm': 'Are you sure to stop the job [{jobName}]? ',
+  'pages.datastudio.editor.stop.force.jobConfirm':
+    'The current job [{job name}] fails to connect to the cluster to obtain information and cannot be stopped. Change the status forced?',
   'pages.datastudio.editor.submitting': 'The new task [{jobName}] is executing',
   'pages.datastudio.editor.checking': 'The task [{jobName}] is checking',
   'pages.datastudio.editor.debugging': 'The new task [{jobName}] is debugging',

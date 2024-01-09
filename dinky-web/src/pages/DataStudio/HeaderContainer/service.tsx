@@ -36,12 +36,17 @@ export async function executeSql(title: string, id: number) {
   return handleGetOption('/api/task/submitTask', title, { id });
 }
 
-export function cancelTask(title: string, id: number, withSavePoint: boolean = true) {
-  return handleGetOption(API_CONSTANTS.CANCEL_JOB, title, { id, withSavePoint });
+export function cancelTask(
+  title: string,
+  id: number,
+  withSavePoint: boolean = true,
+  forceCancel: boolean = true
+) {
+  return handleGetOption(API_CONSTANTS.CANCEL_JOB, title, { id, withSavePoint, forceCancel });
 }
 
-export function restartTask(title: string, id: number, isOnLine: boolean) {
-  return handleGetOption(API_CONSTANTS.RESTART_TASK, title, { id, isOnLine });
+export function restartTask(id: number, savePointPath: string, title: string) {
+  return handleGetOption(API_CONSTANTS.RESTART_TASK, title, { id, savePointPath });
 }
 export function savePointTask(title: string, taskId: number, savePointType: string) {
   return handleGetOption(API_CONSTANTS.SAVEPOINT, title, { taskId, savePointType });

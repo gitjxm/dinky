@@ -28,6 +28,7 @@ import org.dinky.gateway.enums.GatewayType;
 import org.dinky.gateway.enums.SavePointStrategy;
 import org.dinky.gateway.model.FlinkClusterConfig;
 
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.CoreOptions;
 import org.apache.flink.configuration.RestOptions;
 
@@ -225,6 +226,7 @@ public class JobConfig {
 
         gatewayConfig = GatewayConfig.build(config);
         gatewayConfig.setTaskId(getTaskId());
+        gatewayConfig.setType(GatewayType.get(getType()));
     }
 
     public void addGatewayConfig(Map<String, String> config) {
@@ -234,6 +236,13 @@ public class JobConfig {
         for (Map.Entry<String, String> entry : config.entrySet()) {
             gatewayConfig.getFlinkConfig().getConfiguration().put(entry.getKey(), entry.getValue());
         }
+    }
+
+    public void addGatewayConfig(Configuration config) {
+        if (Asserts.isNull(gatewayConfig)) {
+            gatewayConfig = new GatewayConfig();
+        }
+        gatewayConfig.getFlinkConfig().getConfiguration().putAll(config.toMap());
     }
 
     public boolean isUseRemote() {
