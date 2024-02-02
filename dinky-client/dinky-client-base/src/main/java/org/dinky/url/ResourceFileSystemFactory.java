@@ -17,32 +17,25 @@
  *
  */
 
-package org.dinky.app.resource.impl;
+package org.dinky.url;
 
-import org.dinky.app.resource.BaseResourceManager;
-import org.dinky.data.exception.BusException;
-import org.dinky.oss.OssTemplate;
+import org.apache.flink.core.fs.FileSystem;
+import org.apache.flink.core.fs.FileSystemFactory;
 
-import java.io.InputStream;
+import java.io.IOException;
+import java.net.URI;
 
-public class OssResourceManager implements BaseResourceManager {
-    OssTemplate ossTemplate;
+import com.google.auto.service.AutoService;
+
+@AutoService(FileSystemFactory.class)
+public class ResourceFileSystemFactory implements FileSystemFactory {
+    @Override
+    public String getScheme() {
+        return ResourceFileSystem.URI_SCHEMA.getScheme();
+    }
 
     @Override
-    public InputStream readFile(String path) {
-        return getOssTemplate()
-                .getObject(getOssTemplate().getBucketName(), getFilePath(path))
-                .getObjectContent();
-    }
-
-    public OssTemplate getOssTemplate() {
-        if (ossTemplate == null && instances.getResourcesEnable().getValue()) {
-            throw BusException.valueOf("Resource configuration error, OSS is not enabled");
-        }
-        return ossTemplate;
-    }
-
-    public void setOssTemplate(OssTemplate ossTemplate) {
-        this.ossTemplate = ossTemplate;
+    public FileSystem create(URI fsUri) throws IOException {
+        return ResourceFileSystem.getSharedInstance();
     }
 }

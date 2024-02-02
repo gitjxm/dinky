@@ -17,25 +17,29 @@
  *
  */
 
-package org.dinky.service.resource;
+package org.dinky.resource;
 
 import org.dinky.data.exception.DinkyException;
+import org.dinky.data.model.ResourcesVO;
 import org.dinky.data.model.SystemConfiguration;
 import org.dinky.oss.OssTemplate;
-import org.dinky.service.resource.impl.HdfsResourceManager;
-import org.dinky.service.resource.impl.LocalResourceManager;
-import org.dinky.service.resource.impl.OssResourceManager;
+import org.dinky.resource.impl.HdfsResourceManager;
+import org.dinky.resource.impl.LocalResourceManager;
+import org.dinky.resource.impl.OssResourceManager;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 
 import java.io.File;
 import java.io.InputStream;
-
-import org.springframework.web.multipart.MultipartFile;
+import java.nio.charset.Charset;
+import java.util.List;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.lang.Opt;
 import cn.hutool.core.lang.Singleton;
+import cn.hutool.core.util.StrUtil;
 
 public interface BaseResourceManager {
     SystemConfiguration instances = SystemConfiguration.getInstances();
@@ -44,11 +48,13 @@ public interface BaseResourceManager {
 
     void rename(String path, String newPath);
 
-    void putFile(String path, MultipartFile file);
+    void putFile(String path, InputStream fileStream);
 
     void putFile(String path, File file);
 
     String getFileContent(String path);
+
+    List<ResourcesVO> getFullDirectoryStructure(int rootId);
 
     InputStream readFile(String path);
 
@@ -75,8 +81,17 @@ public interface BaseResourceManager {
                 break;
             case HDFS:
                 final Configuration configuration = new Configuration();
-                configuration.set(
-                        "fs.defaultFS", instances.getResourcesHdfsDefaultFS().getValue());
+                Charset charset = Charset.defaultCharset();
+                String coreSite = instances.getResourcesHdfsCoreSite().getValue();
+                Opt.ofBlankAble(coreSite).ifPresent(x -> configuration.addResource(IoUtil.toStream(x, charset)));
+                String hdfsSite = instances.getResourcesHdfsHdfsSite().getValue();
+                Opt.ofBlankAble(hdfsSite).ifPresent(x -> configuration.addResource(IoUtil.toStream(x, charset)));
+                configuration.reloadConfiguration();
+                if (StrUtil.isEmpty(coreSite)) {
+                    configuration.set(
+                            "fs.defaultFS",
+                            instances.getResourcesHdfsDefaultFS().getValue());
+                }
                 try {
                     FileSystem fileSystem = FileSystem.get(
                             FileSystem.getDefaultUri(configuration),
@@ -90,8 +105,14 @@ public interface BaseResourceManager {
     }
 
     default String getFilePath(String path) {
-        return FileUtil.normalize(
-                FileUtil.file(instances.getResourcesUploadBasePath().getValue(), path)
-                        .toString());
+        return FileUtil.normalize(FileUtil.file(getBasePath(), path).toString());
+    }
+
+    default String getBasePath() {
+        String basePath = instances.getResourcesUploadBasePath().getValue();
+        if (!basePath.endsWith("/")) {
+            basePath += "/";
+        }
+        return basePath;
     }
 }

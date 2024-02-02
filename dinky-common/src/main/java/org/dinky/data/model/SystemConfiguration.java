@@ -68,7 +68,7 @@ public class SystemConfiguration {
             .note(Status.SYS_FLINK_SETTINGS_USERESTAPI_NOTE);
     private final Configuration<String> sqlSeparator = key(Status.SYS_FLINK_SETTINGS_SQLSEPARATOR)
             .stringType()
-            .defaultValue(";\\s*(?:\\n|--.*)")
+            .defaultValue(";\\n")
             .note(Status.SYS_FLINK_SETTINGS_SQLSEPARATOR_NOTE);
     private final Configuration<Integer> jobIdWait = key(Status.SYS_FLINK_SETTINGS_JOBIDWAIT)
             .intType()
@@ -181,7 +181,7 @@ public class SystemConfiguration {
 
     private final Configuration<String> ldapFilter = key(Status.SYS_LDAP_SETTINGS_FILTER)
             .stringType()
-            .defaultValue("")
+            .defaultValue("(&(objectClass=inetOrgPerson))")
             .note(Status.SYS_LDAP_SETTINGS_FILTER_NOTE);
 
     private final Configuration<Boolean> ldapAutoload = key(Status.SYS_LDAP_SETTINGS_AUTOLOAD)
@@ -265,6 +265,14 @@ public class SystemConfiguration {
             .stringType()
             .defaultValue("file:///")
             .note(Status.SYS_RESOURCE_SETTINGS_HDFS_FS_DEFAULTFS_NOTE);
+    private final Configuration<String> resourcesHdfsCoreSite = key(Status.SYS_RESOURCE_SETTINGS_HDFS_CORE_SITE)
+            .stringType()
+            .defaultValue("")
+            .note(Status.SYS_RESOURCE_SETTINGS_HDFS_CORE_SITE_NOTE);
+    private final Configuration<String> resourcesHdfsHdfsSite = key(Status.SYS_RESOURCE_SETTINGS_HDFS_HDFS_SITE)
+            .stringType()
+            .defaultValue("")
+            .note(Status.SYS_RESOURCE_SETTINGS_HDFS_HDFS_SITE_NOTE);
     private final Configuration<Boolean> resourcesPathStyleAccess = key(Status.SYS_RESOURCE_SETTINGS_PATH_STYLE_ACCESS)
             .booleanType()
             .defaultValue(true)

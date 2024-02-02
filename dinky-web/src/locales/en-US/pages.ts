@@ -227,7 +227,8 @@ export default {
   'devops.jobinfo.remap.cluster.title.help':
     '(Note: This operation will modify the configuration of the cluster instance simultaneously.)',
   'devops.jobinfo.remap.job.title': 'Job mapping information',
-
+  'devops.joblist.clear.filter': 'Cancel Selected',
+  'devops.joblist.clear.filtertips': 'Clear selected tasks, but not clear other filter conditions',
   'devops.joblist.detail': 'Job Detail',
   'devops.joblist.history': 'History',
   'devops.joblist.joblist': 'Job List',
@@ -800,8 +801,8 @@ export default {
   'rc.ci.killConfirm':
     'Are you sure to stop this Flink Cluster instance?  Please note that after stopping, it will not be recovered! The associated task will affect, please be careful!',
   'rc.ci.kill': 'Stop Flink Cluster Instance',
-  'rc.ci.jma': 'JobManger Address',
-  'rc.ci.jmha': 'JobManger HA Address',
+  'rc.ci.jma': 'JobManager Address',
+  'rc.ci.jmha': 'JobManager HA Address',
   'rc.ci.jmha.tips':
     'Add the RestApi address of the JobManager of the Flink cluster. In HA mode, the addresses are separated by commas, for example',
   'rc.ci.jmha.validate.port': 'Does not meet the rules! Port number range [0-65535]',
@@ -811,7 +812,7 @@ export default {
   'rc.ci.modify': 'Modify cluster Instance',
   'rc.ci.name': 'Name',
   'rc.ci.autoRegisterCannotModify':
-    'Automatically registered instances can only modify the `JobManger high-availability address` attribute, and others cannot be modified!',
+    'Automatically registered instances can only modify the `JobManager high-availability address` attribute, and others cannot be modified!',
   'rc.ci.namePlaceholder': 'Please enter a name!',
   'rc.ci.recycle': 'Recycle Flink Cluster Instances',
   'rc.ci.recycleConfirm':
@@ -972,6 +973,8 @@ export default {
   'rc.resource.upload.tip1': 'Click or drag file to this area to upload',
   'rc.resource.upload.tip2':
     'Support for a single or bulk upload. Strictly prohibited from uploading company data or\n          other banned files.',
+  'rc.resource.filelist': 'File list',
+  'rc.resource.sync': 'Sync remote files',
   'rc.template.codeType': 'Code Type',
   'rc.template.codeTypePlaceholder': 'Please select code type! ',
   'rc.template.create': 'Create UDF Template',
@@ -1213,5 +1216,8 @@ export default {
   'lineage.collapseUpstream': 'Collapse Upstream(UnSupported)',
   'lineage.showMap': 'Show Map',
   'lineage.hideMap': 'Hide Map',
-  'lineage.refresh': 'Refresh'
+  'lineage.refresh': 'Refresh',
+
+  'sys.classLoaderJars.tips':
+    'The following content shows the list of jar packages loaded by the system class loader inside the Dinky service. In this way, you can visually view all Jar files that have been loaded inside the service to help troubleshoot Jar package conflicts and other issues.'
 };

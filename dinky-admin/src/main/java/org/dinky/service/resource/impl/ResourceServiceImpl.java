@@ -19,20 +19,23 @@
 
 package org.dinky.service.resource.impl;
 
+import org.dinky.assertion.DinkyAssert;
 import org.dinky.data.dto.TreeNodeDTO;
 import org.dinky.data.enums.Status;
 import org.dinky.data.exception.BusException;
 import org.dinky.data.model.Resources;
 import org.dinky.data.result.Result;
 import org.dinky.mapper.ResourcesMapper;
-import org.dinky.service.resource.BaseResourceManager;
+import org.dinky.resource.BaseResourceManager;
 import org.dinky.service.resource.ResourcesService;
 import org.dinky.utils.URLUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -55,6 +58,38 @@ import cn.hutool.core.util.StrUtil;
 public class ResourceServiceImpl extends ServiceImpl<ResourcesMapper, Resources> implements ResourcesService {
     private static final TimedCache<Integer, Resources> RESOURCES_CACHE = new TimedCache<>(30 * 1000);
     private static final long ALLOW_MAX_CAT_CONTENT_SIZE = 10 * 1024 * 1024;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean syncRemoteDirectoryStructure() {
+        Resources rootResource = getOne(new LambdaQueryWrapper<Resources>().eq(Resources::getPid, -1));
+        if (rootResource == null) {
+            throw new BusException("root directory is not exists!! please check database");
+        }
+        List<Resources> local = list();
+        Map<Integer, Resources> localMap =
+                local.stream().collect(Collectors.toMap(Resources::getId, Function.identity()));
+
+        List<Resources> resourcesList =
+                getBaseResourceManager().getFullDirectoryStructure(rootResource.getId()).stream()
+                        .filter(x -> x.getPid() != -1)
+                        .map(Resources::of)
+                        .peek(x -> {
+                            // Restore the existing information. If the remotmap is not available,
+                            // it means that the configuration is out of sync and no processing will be done.
+                            Resources resources = localMap.get(x.getFileName().hashCode());
+                            if (resources != null) {
+                                x.setDescription(resources.getDescription());
+                                x.setType(resources.getType());
+                                x.setUserId(resources.getUserId());
+                            }
+                        })
+                        .collect(Collectors.toList());
+        // not delete root directory
+        this.remove(new LambdaQueryWrapper<Resources>().ne(Resources::getPid, -1));
+        this.saveBatch(resourcesList);
+        return true;
+    }
 
     @Override
     public TreeNodeDTO createFolder(Integer pid, String fileName, String desc) {
@@ -105,7 +140,7 @@ public class ResourceServiceImpl extends ServiceImpl<ResourcesMapper, Resources>
     public void rename(Integer id, String fileName, String desc) {
         Resources byId = getById(id);
         String sourceFullName = byId.getFullName();
-        Assert.notNull(byId, () -> new BusException("resource is not exists!"));
+        DinkyAssert.checkNull(byId, Status.RESOURCE_DIR_OR_FILE_NOT_EXIST);
         long count = count(new LambdaQueryWrapper<Resources>()
                 .eq(Resources::getPid, byId.getPid())
                 .eq(Resources::getFileName, fileName)
@@ -184,7 +219,7 @@ public class ResourceServiceImpl extends ServiceImpl<ResourcesMapper, Resources>
     @Override
     public String getContentByResourceId(Integer id) {
         Resources resources = getById(id);
-        Assert.notNull(resources, () -> new BusException(Status.RESOURCE_DIR_OR_FILE_NOT_EXIST));
+        DinkyAssert.checkNull(resources, Status.RESOURCE_DIR_OR_FILE_NOT_EXIST);
         Assert.isFalse(resources.getSize() > ALLOW_MAX_CAT_CONTENT_SIZE, () -> new BusException("file is too large!"));
         return getBaseResourceManager().getFileContent(resources.getFullName());
     }
@@ -192,7 +227,7 @@ public class ResourceServiceImpl extends ServiceImpl<ResourcesMapper, Resources>
     @Override
     public File getFile(Integer id) {
         Resources resources = getById(id);
-        Assert.notNull(resources, () -> new BusException(Status.RESOURCE_DIR_OR_FILE_NOT_EXIST));
+        DinkyAssert.checkNull(resources, Status.RESOURCE_DIR_OR_FILE_NOT_EXIST);
         Assert.isFalse(resources.getSize() > ALLOW_MAX_CAT_CONTENT_SIZE, () -> new BusException("file is too large!"));
         return URLUtils.toFile("rs://" + resources.getFullName());
     }
@@ -212,13 +247,12 @@ public class ResourceServiceImpl extends ServiceImpl<ResourcesMapper, Resources>
     }
 
     /**
-     *
-     * @param pid pid
-     * @param desc desc
+     * @param pid          pid
+     * @param desc         desc
      * @param uploadAction uploadAction
-     * @param fileName fileName
-     * @param pResource pResource
-     * @param size size
+     * @param fileName     fileName
+     * @param pResource    pResource
+     * @param size         size
      */
     private void upload(
             Integer pid, String desc, Consumer<String> uploadAction, String fileName, Resources pResource, long size) {
@@ -262,7 +296,19 @@ public class ResourceServiceImpl extends ServiceImpl<ResourcesMapper, Resources>
         }
         long size = file.getSize();
         String fileName = file.getOriginalFilename();
-        upload(pid, desc, (fullName) -> getBaseResourceManager().putFile(fullName, file), fileName, pResource, size);
+        upload(
+                pid,
+                desc,
+                (fullName) -> {
+                    try {
+                        getBaseResourceManager().putFile(fullName, file.getInputStream());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                fileName,
+                pResource,
+                size);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -275,10 +321,6 @@ public class ResourceServiceImpl extends ServiceImpl<ResourcesMapper, Resources>
                         == -1,
                 () -> new BusException(Status.ROOT_DIR_NOT_ALLOW_DELETE));
         try {
-            if (id < 1) {
-                // todo 删除主目录，实际是清空
-                remove(new LambdaQueryWrapper<Resources>().ne(Resources::getId, 0));
-            }
             Resources byId = getById(id);
             if (isExistsChildren(id)) {
                 if (byId.getIsDirectory()) {

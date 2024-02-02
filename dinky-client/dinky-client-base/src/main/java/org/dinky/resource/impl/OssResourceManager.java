@@ -17,20 +17,24 @@
  *
  */
 
-package org.dinky.service.resource.impl;
+package org.dinky.resource.impl;
 
 import org.dinky.data.exception.BusException;
 import org.dinky.data.exception.DinkyException;
+import org.dinky.data.model.ResourcesVO;
 import org.dinky.oss.OssTemplate;
-import org.dinky.service.resource.BaseResourceManager;
+import org.dinky.resource.BaseResourceManager;
 
 import java.io.File;
 import java.io.InputStream;
-
-import org.springframework.web.multipart.MultipartFile;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
@@ -57,9 +61,9 @@ public class OssResourceManager implements BaseResourceManager {
     }
 
     @Override
-    public void putFile(String path, MultipartFile file) {
+    public void putFile(String path, InputStream fileStream) {
         try {
-            getOssTemplate().putObject(getOssTemplate().getBucketName(), getFilePath(path), file.getInputStream());
+            getOssTemplate().putObject(getOssTemplate().getBucketName(), getFilePath(path), fileStream);
         } catch (Exception e) {
             throw new DinkyException(e);
         }
@@ -78,6 +82,43 @@ public class OssResourceManager implements BaseResourceManager {
     @Override
     public String getFileContent(String path) {
         return IoUtil.readUtf8(readFile(path));
+    }
+
+    @Override
+    public List<ResourcesVO> getFullDirectoryStructure(int rootId) {
+        String basePath = getBasePath();
+
+        List<S3ObjectSummary> listBucketObjects =
+                getOssTemplate().listBucketObjects(getOssTemplate().getBucketName(), basePath);
+        Map<Integer, ResourcesVO> resourcesMap = new HashMap<>();
+
+        for (S3ObjectSummary obj : listBucketObjects) {
+            obj.setKey(obj.getKey().replace(basePath, ""));
+            if (obj.getKey().isEmpty()) {
+                continue;
+            }
+            String[] split = obj.getKey().split("/");
+            String parent = "";
+            for (int i = 0; i < split.length; i++) {
+                String s = split[i];
+                int pid = parent.isEmpty() ? rootId : parent.hashCode();
+                parent = parent + "/" + s;
+                ResourcesVO.ResourcesVOBuilder builder = ResourcesVO.builder()
+                        .id(parent.hashCode())
+                        .pid(pid)
+                        .fullName(parent)
+                        .fileName(s)
+                        .isDirectory(obj.getKey().endsWith("/"))
+                        .size(obj.getSize());
+                if (i == split.length - 1) {
+                    builder.isDirectory(obj.getKey().endsWith("/"));
+                } else {
+                    builder.isDirectory(true);
+                }
+                resourcesMap.put(parent.hashCode(), builder.build());
+            }
+        }
+        return new ArrayList<>(resourcesMap.values());
     }
 
     @Override

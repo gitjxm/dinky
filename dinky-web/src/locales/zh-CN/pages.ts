@@ -214,6 +214,8 @@ export default {
   'devops.jobinfo.remap.cluster.title': '集群实例映射信息',
   'devops.jobinfo.remap.cluster.title.help': ' (注意：此操作会同步修改集群实例配置)',
   'devops.jobinfo.remap.job.title': 'Job映射信息',
+  'devops.joblist.clear.filter': '取消选择',
+  'devops.joblist.clear.filtertips': '清除选择的任务,并不是清除其他得筛选条件',
 
   'devops.joblist.detail': '详情',
   'devops.joblist.history': '历史',
@@ -766,8 +768,8 @@ export default {
     '确定停止该 Flink 实例吗? 请注意,停止后将无法恢复!关联的任务将会收到影响,请谨慎操作!',
   'rc.ci.heartbeat': '心跳检测',
   'rc.ci.kill': '停止 Flink 实例',
-  'rc.ci.jma': 'JobManger 地址',
-  'rc.ci.jmha': 'JobManger 高可用地址',
+  'rc.ci.jma': 'JobManager 地址',
+  'rc.ci.jmha': 'JobManager 高可用地址',
   'rc.ci.jmha.tips':
     '添加 Flink 集群的 JobManager 的 RestApi 地址。当 HA 模式时，地址间用英文逗号分隔，例如：192.168.123.101',
   'rc.ci.jmha.validate.port': '不符合规则! 端口号区间[0-65535]',
@@ -777,7 +779,7 @@ export default {
   'rc.ci.modify': '修改集群',
   'rc.ci.name': '实例名称',
   'rc.ci.autoRegisterCannotModify':
-    '自动注册的实例仅能修改 `JobManger高可用地址` 属性,其他无法修改!',
+    '自动注册的实例仅能修改 `JobManager高可用地址` 属性,其他无法修改!',
   'rc.ci.namePlaceholder': '请输入名称!',
   'rc.ci.recycle': '回收 Flink 实例',
   'rc.ci.recycleConfirm': '确定回收所有自动创建且过期的 Flink 实例吗？',
@@ -930,6 +932,9 @@ export default {
   'rc.resource.upload.fail': '文件 【{fileName}】 上传失败',
   'rc.resource.upload.tip1': '点击或拖拽文件到此区域上传',
   'rc.resource.upload.tip2': '支持单个或批量上传。严禁上传公司数据或其他禁止上传的文件。',
+  'rc.resource.filelist': '文件列表',
+  'rc.resource.sync': '同步目录结构',
+
   'rc.template.codeType': '代码类型',
   'rc.template.codeTypePlaceholder': '请选择代码类型！',
   'rc.template.create': '创建 UDF 模板',
@@ -1168,5 +1173,8 @@ export default {
   'lineage.collapseUpstream': '收起上游(暂未实现)',
   'lineage.showMap': '显示小地图',
   'lineage.hideMap': '隐藏小地图',
-  'lineage.refresh': '刷新血缘'
+  'lineage.refresh': '刷新血缘',
+
+  'sys.classLoaderJars.tips':
+    '下述内容展示了 Dinky 服务内部的系统类加载器加载的 jar 包列表,可以通过此种方式直观的查看服务内部已经加载的所有 Jar 文件,以助于排查 Jar 包冲突等问题'
 };
