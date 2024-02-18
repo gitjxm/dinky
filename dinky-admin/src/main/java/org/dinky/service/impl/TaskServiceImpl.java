@@ -22,6 +22,7 @@ package org.dinky.service.impl;
 import org.dinky.assertion.Asserts;
 import org.dinky.assertion.DinkyAssert;
 import org.dinky.config.Dialect;
+import org.dinky.constant.FlinkSQLConstant;
 import org.dinky.context.TenantContextHolder;
 import org.dinky.data.annotations.ProcessStep;
 import org.dinky.data.app.AppParamConfig;
@@ -554,6 +555,15 @@ public class TaskServiceImpl extends SuperServiceImpl<TaskMapper, Task> implemen
         if (lifeCycle == JobLifeCycle.PUBLISH) {
             Integer taskVersionId = taskVersionService.createTaskVersionSnapshot(task);
             task.setVersionId(taskVersionId);
+            if (Dialect.isUDF(task.getDialect())) {
+                UdfCodePool.addOrUpdate(UDFUtils.taskToUDF(task.buildTask()));
+            }
+        } else {
+            if (Dialect.isUDF(task.getDialect())
+                    && Asserts.isNotNull(task.getConfigJson())
+                    && Asserts.isNotNull(task.getConfigJson().getUdfConfig())) {
+                UdfCodePool.remove(task.getConfigJson().getUdfConfig().getClassName());
+            }
         }
         boolean saved = saveOrUpdate(task.buildTask());
         if (saved && Asserts.isNotNull(task.getJobInstanceId())) {
@@ -613,7 +623,11 @@ public class TaskServiceImpl extends SuperServiceImpl<TaskMapper, Task> implemen
                 UdfCodePool.remove(task.getConfigJson().getUdfConfig().getClassName());
             }
             task.getConfigJson().getUdfConfig().setClassName(className);
-            UdfCodePool.addOrUpdate(UDFUtils.taskToUDF(task));
+            if (task.getStep().equals(JobLifeCycle.PUBLISH.getValue())) {
+                UdfCodePool.addOrUpdate(UDFUtils.taskToUDF(task));
+            } else {
+                UdfCodePool.remove(task.getConfigJson().getUdfConfig().getClassName());
+            }
         }
 
         return this.saveOrUpdate(task);
@@ -631,8 +645,6 @@ public class TaskServiceImpl extends SuperServiceImpl<TaskMapper, Task> implemen
     @Transactional(rollbackFor = Exception.class)
     public Task initDefaultFlinkSQLEnv(Integer tenantId) {
         TenantContextHolder.set(tenantId);
-        String separator = SystemConfiguration.getInstances().getSqlSeparator();
-        separator = separator.replace("\\r", "\r").replace("\\n", "\n");
         String name = "DefaultCatalog";
 
         Task defaultFlinkSQLEnvTask = getTaskByNameAndTenantId(name, tenantId);
@@ -645,7 +657,11 @@ public class TaskServiceImpl extends SuperServiceImpl<TaskMapper, Task> implemen
                         + "'password' = '%s',\n"
                         + "    'url' = '%s'\n"
                         + ")%suse catalog my_catalog%s",
-                dsProperties.getUsername(), dsProperties.getPassword(), dsProperties.getUrl(), separator, separator);
+                dsProperties.getUsername(),
+                dsProperties.getPassword(),
+                dsProperties.getUrl(),
+                FlinkSQLConstant.SEPARATOR,
+                FlinkSQLConstant.SEPARATOR);
 
         if (null != defaultFlinkSQLEnvTask) {
             defaultFlinkSQLEnvTask.setStatement(sql);
@@ -689,6 +705,15 @@ public class TaskServiceImpl extends SuperServiceImpl<TaskMapper, Task> implemen
                 .in("dialect", Dialect.JAVA.getValue(), Dialect.SCALA.getValue(), Dialect.PYTHON.getValue())
                 .eq("enabled", 1)
                 .isNotNull("save_point_path"));
+    }
+
+    @Override
+    public List<Task> getReleaseUDF() {
+        return list(new LambdaQueryWrapper<Task>()
+                .in(Task::getDialect, Dialect.JAVA.getValue(), Dialect.SCALA.getValue(), Dialect.PYTHON.getValue())
+                .eq(Task::getEnabled, 1)
+                .eq(Task::getStep, JobLifeCycle.PUBLISH.getValue())
+                .isNotNull(Task::getSavePointPath));
     }
 
     @Override
